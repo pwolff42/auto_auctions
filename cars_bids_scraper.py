@@ -1,7 +1,7 @@
 '''
-Creating a scraper for Cars and Bids
-'''
+python code to scrape past auctions on carsandbids.com
 
+'''
 # importing requisite packages
 
 import requests
@@ -15,13 +15,15 @@ from selenium.webdriver.common.by import By
 import pandas as pd
 
 # homepage link for carsandbids.com
-cbhome = "https://carsandbids.com/"
+cbauctions = 'https://carsandbids.com/past-auctions/'
+
 
 # pointing to the browser driver
+pwolff_path = "/Users/pww/Applications/chromedriver" # Patrick's path
+agaba_path = "abhishek's path here" # Abhishek's path
+scastillo_path = "Sebastian's path here" # Sebastian's path
 
-pwolff_path = "/Users/pww/Applications/chromedriver"
-# agaba_path =
-# scastillo_path =
+# edit the argument of the following before running
 
 s = Service(pwolff_path) # your driver path goes here
 
@@ -45,33 +47,36 @@ def flip_page(next_page_button):
     else:
         print("no more pages!")
 
-# function to scrape the reviews from each movie page and appending them to an empty list: all_reviews
+# getting the data from a single listing page on cars&bids after accessing the link
+# test link
+example_link = "https://carsandbids.com/auctions/3RZ7NmoN/2021-mercedes-amg-e63-s-wagon"
 
-def retrieve_listings():
-    if check_exists_by_xpath(critic_reviews_xpath):
-        element = browser.find_element(By.XPATH,critic_reviews_xpath)
-        browser.execute_script("arguments[0].click();", element)
-        time.sleep(1)
-    else:
-        print('No element found!')
-    # tomato soupify
-    while True:
-        page_source = browser.page_source
-        tomato_soup = BeautifulSoup(page_source, 'lxml')
-        the_reviews = tomato_soup.find_all('div', {'class':re.compile("row review_table_row")})
-        for review in the_reviews:
-            single_review = ['NA', 'NA']
-            rating, text = "NA","NA"
-            rating_check = review.find('div', {'class':re.compile("review_icon icon")})
-            if rating_check:
-                rating = rating_check.get('class')[-1]
-                single_review[0] = rating
-            text_check = review.find('div', class_ = "the_review").text.strip()
-            if len(text_check) > 0:
-                text = text_check
-                single_review[1] = text
-            all_reviews.append(single_review)
-        if not check_exists_by_xpath(next_page_button):
-            break
-        flip_page()
-    return all_reviews
+# opening a browser
+browser = webdriver.Chrome(service=s)
+browser.get(example_link)
+time.sleep(1)
+
+
+page_source = browser.page_source
+page_soup = BeautifulSoup(page_source, 'lxml')
+url_link = page_soup.find('link', {'rel':'canonical'}).get('href')
+url_link
+
+# last part of the url will serve as the unique ID column for each car, everything after the last '/'
+# function to split strings on last / character
+
+
+# Function to get the last part of the string after the last / character
+def url_unique_id(string):
+    return string.rsplit('/', 1)[-1]
+
+
+# testing the function
+url_unique_id(url_link)
+
+
+
+
+
+
+
