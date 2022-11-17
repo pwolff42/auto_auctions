@@ -45,3 +45,33 @@ def flip_page(next_page_button):
     else:
         print("no more pages!")
 
+# function to scrape the reviews from each movie page and appending them to an empty list: all_reviews
+
+def retrieve_listings():
+    if check_exists_by_xpath(critic_reviews_xpath):
+        element = browser.find_element(By.XPATH,critic_reviews_xpath)
+        browser.execute_script("arguments[0].click();", element)
+        time.sleep(1)
+    else:
+        print('No element found!')
+    # tomato soupify
+    while True:
+        page_source = browser.page_source
+        tomato_soup = BeautifulSoup(page_source, 'lxml')
+        the_reviews = tomato_soup.find_all('div', {'class':re.compile("row review_table_row")})
+        for review in the_reviews:
+            single_review = ['NA', 'NA']
+            rating, text = "NA","NA"
+            rating_check = review.find('div', {'class':re.compile("review_icon icon")})
+            if rating_check:
+                rating = rating_check.get('class')[-1]
+                single_review[0] = rating
+            text_check = review.find('div', class_ = "the_review").text.strip()
+            if len(text_check) > 0:
+                text = text_check
+                single_review[1] = text
+            all_reviews.append(single_review)
+        if not check_exists_by_xpath(next_page_button):
+            break
+        flip_page()
+    return all_reviews
