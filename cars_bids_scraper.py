@@ -1,22 +1,33 @@
 '''
-python code to scrape past auctions on carsandbids.com
-
+python script to scrape past auctions on carsandbids.com
 '''
 # importing requisite packages
 
+from urllib.request import urlopen
+import json
 import requests
 import time
 import re
+
 from bs4 import BeautifulSoup
+
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+
 import pandas as pd
 
-# homepage link for carsandbids.com
-cbauctions = 'https://carsandbids.com/past-auctions/'
+import matplotlib.pyplot as plt
+%matplotlib inline
+import seaborn as sns
 
+# headers for working with the requests library
+headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36"}
+
+# past auctions link for carsandbids.com
+# eventually this link will be used in a loop with different paths (subdirectories) to get individual pages
+cbauctions = 'https://carsandbids.com/past-auctions/'
 
 # pointing to the browser driver
 pwolff_path = "/Users/pww/Applications/chromedriver" # Patrick's path
@@ -24,21 +35,22 @@ agaba_path = "abhishek's path here" # Abhishek's path
 scastillo_path = "Sebastian's path here" # Sebastian's path
 
 # edit the argument of the following before running
-
 s = Service(pwolff_path) # your driver path goes here
 
-# xpath verification function
-
 def check_exists_by_xpath(xpath):
+    '''
+    xpath verification function
+    '''
     try:
         browser.find_element(By.XPATH,xpath)
     except NoSuchElementException:
         return False
     return True
 
-# page turner function with 1 second time sleep
-
 def flip_page(next_page_button):
+    '''
+    :param next_page_button: the xpath of the next page button
+    '''
     next_page_exists = check_exists_by_xpath(next_page_button)
     if next_page_exists:
         element = browser.find_element(By.XPATH, next_page_button)
@@ -56,27 +68,46 @@ browser = webdriver.Chrome(service=s)
 browser.get(example_link)
 time.sleep(1)
 
-
 page_source = browser.page_source
 page_soup = BeautifulSoup(page_source, 'lxml')
+
+# getting the URL of the page,
+# everything after the last '/' in the url will serve as the unique ID for the car
 url_link = page_soup.find('link', {'rel':'canonical'}).get('href')
-url_link
 
-# last part of the url will serve as the unique ID column for each car, everything after the last '/'
-# function to split strings on last / character
-
-
-# Function to get the last part of the string after the last / character
 def url_unique_id(string):
+    '''
+    :param string: the URL of the page
+    :return: the unique identifier of the listing (usually formatted as year-make-model-index)
+    '''
     return string.rsplit('/', 1)[-1]
 
+unique_id = url_unique_id(url_link)
 
-# testing the function
-url_unique_id(url_link)
+# getting the features from the quick-facts table on each cars and bids listing page
+def parse_tag(tags):
+    '''
+    :param tags: a list of tags with desired information embedded as text
+    :return: a list of the text from the tags
+    '''
+    return [x.text[0] for x in tags]
 
+# getting the data in the 'quick-facts' table
+quick_facts = page_soup.find('div', {'class':"quick-facts"})
 
+# features from the quick-facts section are represented in a definition list (dl) html format--a table
+# within the dl there are document term (dts) and document description (dds) pairs
+# the dts are the features and the dds are the corresponding values
+# !important note! if the browser is resized, the order of the definition list changes
 
+# getting the values from the quick-facts table
+dd_tags = quick_facts.find_all('dd')
+attributes = parse_tag(dd_tags) # all models have 'Save' at the end of the model name
 
+# feature names from the quick-facts table
+dt_tags = quick_facts.find_all('dt')
+headers = parse_tag(dt_tags)
 
-
+# making a dictionary of the feature headers and features from the quick facts section
+quick_facts_dict = dict(zip(headers, attributes))
 
