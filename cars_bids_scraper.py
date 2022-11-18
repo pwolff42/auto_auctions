@@ -1,5 +1,29 @@
 '''
 python script to scrape past auctions on carsandbids.com
+
+Feature list thus far:
+- URL
+- Unique ID (index)
+- year
+- make
+- model
+- mileage
+- VIN
+- Title Status
+- Location
+- Seller
+- Engine
+- Drivetrain
+- Transmission
+- Sell Price (target)
+- bid count
+- reserve status (no reserve or reserve listing)
+- number of views on the page (could be misleading, they count after sale too)
+- auction ending datetime
+- number of photos posted for the listing
+
+
+
 '''
 # importing requisite packages
 
@@ -71,9 +95,6 @@ time.sleep(1)
 page_source = browser.page_source
 page_soup = BeautifulSoup(page_source, 'lxml')
 
-# getting the URL of the page,
-# everything after the last '/' in the url will serve as the unique ID for the car
-url_link = page_soup.find('link', {'rel':'canonical'}).get('href')
 
 def url_unique_id(string):
     '''
@@ -82,7 +103,14 @@ def url_unique_id(string):
     '''
     return string.rsplit('/', 1)[-1]
 
+# getting the URL of the page,
+# everything after the last '/' in the url will serve as the unique ID for the car
+url_link = page_soup.find('link', {'rel':'canonical'}).get('href')
+
 unique_id = url_unique_id(url_link)
+
+# getting the year of the car from the unique identifier (first 4 characters)
+year = unique_id.split('-')[0]
 
 # getting the features from the quick-facts table on each cars and bids listing page
 def parse_tag(tags):
@@ -90,7 +118,7 @@ def parse_tag(tags):
     :param tags: a list of tags with desired information embedded as text
     :return: a list of the text from the tags
     '''
-    return [x.text[0] for x in tags]
+    return [x.text for x in tags]
 
 # getting the data in the 'quick-facts' table
 quick_facts = page_soup.find('div', {'class':"quick-facts"})
@@ -110,7 +138,7 @@ headers = parse_tag(dt_tags)
 
 # making a dictionary of the feature headers and features from the quick facts section
 quick_facts_dict = dict(zip(headers, attributes))
-
+quick_facts_dict
 # getting the data from the 'bid-stats' bar
 bid_stats = page_soup.find('ul', {'class':"bid-stats"})
 
@@ -123,7 +151,24 @@ final_price = re.sub(r'[,$]', '', bid_value)
 num_bids = bid_stats.find('li', {'class':"num-bids"}).contents[1] # num-bids has text and then the value at index 1
 bid_count = num_bids.text
 
-# getting the date of the auction end from the 'bid-stats' bar on the listing page
-end_date = bid_stats.find('span', {'class':"time-ended"}).text
-end_date
+# getting the reserve status of the car (reserve or no reserve)
+# have to circumvent the title attribute of the reserve status element, long attribute containing price in both cases
+reserve_status = page_soup.find('span', {'title':re.compile('price')}).text
+reserve_status
 
+# getting the number of views on the listing page
+views = page_soup.find('div', {'class': "td views-icon"}).text
+if views == None:
+    view_count = float("nan")
+else:
+    view_count = re.sub(r',' , '', views) # using regular expressions to remove commas
+
+# getting the date and time of the auction end from the 'bid-stats' bar on the listing page
+auction_metadata = page_soup.find('div', {'class':"auction-stats-meta ended"})
+auction_end_datetime = auction_metadata.find('div', {'class': 'td end-icon'}).text
+
+# getting the number of photos in the listing
+all_photos_text = page_soup.find('div', attrs = {'class': 'all', 'data-id': 'all', 'data-section': 'interior'}).text
+# use regular expressions to just get the text in the parentheses
+photo_count = re.findall(r'\((.*?)\)', all_photos_text)[0]
+photo_count
