@@ -96,7 +96,7 @@ def parse_tag(tags):
 quick_facts = page_soup.find('div', {'class':"quick-facts"})
 
 # features from the quick-facts section are represented in a definition list (dl) html format--a table
-# within the dl there are document term (dts) and document description (dds) pairs
+# within the dl there are document term (dt) and document description (dd) pairs
 # the dts are the features and the dds are the corresponding values
 # !important note! if the browser is resized, the order of the definition list changes
 
@@ -110,4 +110,20 @@ headers = parse_tag(dt_tags)
 
 # making a dictionary of the feature headers and features from the quick facts section
 quick_facts_dict = dict(zip(headers, attributes))
+
+# getting the data from the 'bid-stats' bar
+bid_stats = page_soup.find('ul', {'class':"bid-stats"})
+
+# getting the final sell price from the 'bid-stats' bar on the listing page
+bid_value = bid_stats.find('span', {'class':"bid-value"}).text
+# removing formatting with regular expressions
+final_price = re.sub(r'[,$]', '', bid_value)
+
+# getting the bid count from the 'bid-stats' bar on the listing page
+num_bids = bid_stats.find('li', {'class':"num-bids"}).contents[1] # num-bids has text and then the value at index 1
+bid_count = num_bids.text
+
+# getting the date of the auction end from the 'bid-stats' bar on the listing page
+end_date = bid_stats.find('span', {'class':"time-ended"}).text
+end_date
 
