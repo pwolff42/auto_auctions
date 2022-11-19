@@ -45,8 +45,8 @@ pwolff_path = "/Users/pww/Applications/chromedriver" # Patrick's path
 agaba_path = "abhishek's path here" # Abhishek's path
 scastillo_path = "Sebastian's path here" # Sebastian's path
 
-# edit the argument of the following before running
-s = Service(pwolff_path) # your driver path goes here
+# edit the argument of the following to add your driver path before running
+s = Service(pwolff_path)
 
 # helper functions:
 
@@ -164,7 +164,7 @@ def random_delay():
     return random.randint(3,5)
 
 # past auctions link for carsandbids.com
-cbauctions = "https://carsandbids.com/auctions/3RZ7NmoN/2021-mercedes-amg-e63-s-wagon"
+cbauctions = "https://carsandbids.com/past-auctions/"
 
 # opening a browser
 browser = webdriver.Chrome(service=s)
@@ -175,7 +175,7 @@ carslist = []
 bad_urls = []
 i = 1
 
-for i in range(1, 202): # 201 pages of listings, not exactly elegant but I know that's how many there are
+for i in range(1, 202): # 201 pages of listings, not elegant but I know that's how many there are as of 11/19/2022
     print("Scraping page " + str(i))
     browser.get(f"https://carsandbids.com/past-auctions/?page={i}")
     time.sleep(random_delay())
@@ -209,10 +209,10 @@ cars_df = pd.DataFrame(carslist)
 # desired save location
 directory = 'Enter desired save location here'
 
-# saving the dataframe as a csv
+# saving the dataframe as a csv to the desired save location
 cars_df.to_csv(f'{directory}/cars_df.csv', index=False)
 
-# writing the bad urls to a text file on the desktop
+# writing the bad urls to the desired save location
 with open(f'{directory}/bad_urls.txt', 'w') as f:
     for url in bad_urls:
         f.write(url + '\n')
