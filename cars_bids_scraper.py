@@ -22,9 +22,6 @@
 
 # importing packages
 
-from urllib.request import urlopen
-import json
-import requests
 import time
 import re
 
@@ -41,9 +38,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # pointing to the browser driver
-pwolff_path = "/Users/pww/Applications/chromedriver" # Patrick's path
-agaba_path = "abhishek's path here" # Abhishek's path
-scastillo_path = "Sebastian's path here" # Sebastian's path
+pwolff_path = "shhh" # Patrick's path
 
 # edit the argument of the following to add your driver path before running
 s = Service(pwolff_path)
@@ -124,7 +119,8 @@ def scrape_listing(listing_soup):
     bid_count = num_bids.text
 
     # getting the reserve status of the car (reserve or no reserve)
-    # have to circumvent the title attribute of the reserve status element, long attribute containing price in both cases
+    # have to circumvent the title attribute of the reserve status element
+    # long attribute containing price in both cases
     reserve_status = listing_soup.find('span', {'title':re.compile('price')}).text
 
     # getting the number of views on the listing page
